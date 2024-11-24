@@ -2,6 +2,7 @@ package com.student.springerp.controller;
 
 import com.student.springerp.crudops.StudentRepo;
 import com.student.springerp.dto.AuthRequest;
+import com.student.springerp.dto.JwtRsp;
 import com.student.springerp.entity.Student;
 import com.student.springerp.service.JwtUtil;
 import com.student.springerp.service.UserService;
@@ -37,7 +38,7 @@ public class StudentController {
     private JwtUtil jwtUtil;
 
     @PostMapping("/login")
-    public String login(@RequestBody AuthRequest authRequest) {
+    public JwtRsp login(@RequestBody AuthRequest authRequest) {
         // Authenticate the user
         Student student = studentRepo.findByEmail(authRequest.getUsername());
 
@@ -52,8 +53,13 @@ public class StudentController {
             throw new BadCredentialsException("Invalid username or password");
         }
 
+        JwtRsp jwtRsp = new JwtRsp();
+
         // Generate JWT token
-        return jwtUtil.generateToken(authRequest.getUsername());
+        jwtRsp.setJwtToken(jwtUtil.generateToken(authRequest.getUsername()));
+        jwtRsp.setStudentId(student.getId());
+
+        return jwtRsp;
     }
 
     @GetMapping
