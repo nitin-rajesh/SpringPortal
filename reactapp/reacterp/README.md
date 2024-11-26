@@ -2,6 +2,62 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+CREATE TABLE student_filter (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    student_id BIGINT NOT NULL,
+    specialisation_id BIGINT NOT NULL,
+    placement_id BIGINT NOT NULL,
+    domain_id BIGINT NOT NULL,
+    CONSTRAINT fk_student FOREIGN KEY (student_id) REFERENCES student(id) ON DELETE CASCADE,
+    CONSTRAINT fk_specialisation FOREIGN KEY (specialisation_id) REFERENCES specialisations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_placement FOREIGN KEY (placement_id) REFERENCES placements(id) ON DELETE CASCADE,
+    CONSTRAINT fk_domain FOREIGN KEY (domain_id) REFERENCES domains(id) ON DELETE CASCADE
+);
+
+CREATE TABLE student_filter (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    student_id BIGINT NOT NULL,
+    specialisation_id BIGINT NOT NULL,
+    placement_id BIGINT,
+    domain_id BIGINT NOT NULL,
+    CONSTRAINT fk_student FOREIGN KEY (student_id) REFERENCES student(id) ON DELETE CASCADE,
+    CONSTRAINT fk_specialisation FOREIGN KEY (specialisation_id) REFERENCES specialisations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_placement FOREIGN KEY (placement_id) REFERENCES placements(id) ON DELETE CASCADE,
+    CONSTRAINT fk_domain FOREIGN KEY (domain_id) REFERENCES domains(id) ON DELETE CASCADE
+);
+
+INSERT INTO placements (organisation_id, profile, description, intake, min_grade) 
+VALUES 
+(4, 'System Design Engineer', 'Responsible for developing and maintaining software systems.', 50, 7.5),
+(1, 'Big Data Researcher', 'Analyze data to provide business insights and reporting.', 30, 6.8);
+
+
+CREATE TABLE student_courses (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    student_id BIGINT NOT NULL,
+    course_id BIGINT NOT NULL,
+    grade_id BIGINT,
+    comments TEXT,
+    FOREIGN KEY (student_id) REFERENCES student(id),
+    FOREIGN KEY (course_id) REFERENCES courses(id),
+    FOREIGN KEY (grade_id) REFERENCES grades(id)
+);
+
+CREATE TABLE placement_student (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    placement_id BIGINT NOT NULL,
+    student_id BIGINT NOT NULL,
+    cv_application MEDIUMBLOB,
+    about TEXT,
+    acceptance BOOLEAN,
+    comments TEXT,
+    date TIMESTAMP,
+    FOREIGN KEY (placement_id) REFERENCES placements(id),
+    FOREIGN KEY (student_id) REFERENCES student(id)
+);
+
+
+
 ## Available Scripts
 
 In the project directory, you can run:

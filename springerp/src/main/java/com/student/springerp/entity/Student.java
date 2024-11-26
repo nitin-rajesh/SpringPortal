@@ -20,6 +20,12 @@ public class Student {
 
     @Getter
     @Setter
+    @Column(name = "roll_number", nullable = false, unique = true)
+    private String rollNumber;
+
+
+    @Getter
+    @Setter
     @Column(name = "last_name")
     private String lastName;
 
@@ -51,10 +57,5 @@ public class Student {
     @Setter
     @Column(name="password", nullable = false)
     private String password;
-
-    @Getter
-    @Setter
-    @Column(name = "access_token", unique = true)
-    private String accessToken;
 
 }

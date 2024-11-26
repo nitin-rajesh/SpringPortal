@@ -14,7 +14,7 @@ public interface StudentCourseRepo extends JpaRepository<StudentCourses, Long> {
     @Query("SELECT AVG(sc.grade.gradePoint) " +
             "FROM StudentCourses sc " +
             "JOIN Grades g ON g = sc.grade " +
-            "JOIN Students s WHERE s.id = :id")
+            "JOIN Student s WHERE s.id = :id")
     List<Double> findTotalGradesForCourses(@Param("id") Long studentId);
 
 

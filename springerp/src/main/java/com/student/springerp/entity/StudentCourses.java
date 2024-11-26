@@ -16,7 +16,7 @@ public class StudentCourses {
 
     @ManyToOne
     @JoinColumn(name = "student_id", nullable = false)
-    private Students student;  // Foreign key to Student entity
+    private Student student;  // Foreign key to Student entity
 
     @ManyToOne
     @JoinColumn(name = "course_id", nullable = false)

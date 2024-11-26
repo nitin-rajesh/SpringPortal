@@ -6,11 +6,13 @@ const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
-  const navigate = useNavigate(); // For navigation
+  const [responseData, setResponseData] = useState(null); // State to store the API response
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
-    e.preventDefault();
-    setMessage("");
+    e.preventDefault(); // Prevent form submission from refreshing the page
+    setMessage(""); // Clear any existing messages
+    setResponseData(null); // Clear previous API response
 
     try {
       const response = await axios.post("http://localhost:8080/login", {
@@ -19,7 +21,15 @@ const Login = () => {
       });
 
       if (response.status === 200) {
+        const { jwtToken, studentId } = response.data;
+
+        // Store jwtToken and studentId in localStorage
+        localStorage.setItem("jwtToken", jwtToken);
+        localStorage.setItem("studentId", studentId);
+  
         setMessage("Login successful!");
+        navigate("/home"); // Navigate to HomePage
+
       } else {
         setMessage("Login failed. Please try again.");
       }
@@ -28,10 +38,6 @@ const Login = () => {
         error.response?.data?.message || "An error occurred. Please try again."
       );
     }
-  };
-
-  const goToRegister = () => {
-    navigate("/register"); // Navigate to the register page
   };
 
   return (
@@ -63,21 +69,15 @@ const Login = () => {
         </button>
       </form>
 
-      <button
-        onClick={goToRegister}
-        style={{
-          padding: "0.5rem 2rem",
-          marginTop: "1rem",
-          backgroundColor: "#007BFF",
-          color: "#fff",
-          border: "none",
-          cursor: "pointer",
-        }}
-      >
-        Register
-      </button>
-
       {message && <p>{message}</p>}
+      
+      {responseData && (
+        <div style={{ marginTop: "1rem", textAlign: "left" }}>
+          <h3>Response:</h3>
+          <p><strong>JWT Token:</strong> {responseData.jwtToken}</p>
+          <p><strong>Student ID:</strong> {responseData.studentId}</p>
+        </div>
+      )}
     </div>
   );
 };
