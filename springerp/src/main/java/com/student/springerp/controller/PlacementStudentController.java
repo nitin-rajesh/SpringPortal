@@ -8,9 +8,7 @@ import com.student.springerp.entity.Placement;
 import com.student.springerp.entity.PlacementStudent;
 import com.student.springerp.entity.Student;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -74,48 +72,58 @@ public class PlacementStudentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(savedPlacementStudent);
     }
 
+    @PostMapping("/{id}/upload-cv")
+    public ResponseEntity<String> uploadCvApplication(
+            @PathVariable Long id,
+            @RequestParam("file") MultipartFile pdfFile) {
 
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<PlacementStudent> createPlacementStudent(
-            @RequestParam("placement_id") Long placementId,
-            @RequestParam("student_id") Long studentId,
-            @RequestParam("cv_application") MultipartFile cvApplication) {
+        if (pdfFile.isEmpty() || !pdfFile.getContentType().equalsIgnoreCase("application/pdf")) {
+            return ResponseEntity.badRequest().body("Please upload a valid PDF file.");
+        }
 
         try {
-            // Fetch Placement and Student entities by their IDs
-            Placement placement = placementRepo.findById(placementId)
-                    .orElseThrow(() -> new IllegalArgumentException("Placement not found"));
-            Student student = studentRepo.findById(studentId)
-                    .orElseThrow(() -> new IllegalArgumentException("Student not found"));
+            // Find the PlacementStudent entry by ID
+            PlacementStudent placementStudent = placementStudentRepo.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("PlacementStudent with ID " + id + " not found."));
 
-            // Create PlacementStudent entity
-            PlacementStudent placementStudent = new PlacementStudent();
-            placementStudent.setPlacement(placement);
-            placementStudent.setStudent(student);
+            // Set the PDF file as a byte array in cvApplication
+            placementStudent.setCvApplication(pdfFile.getBytes());
 
-            // Set the CV application file as byte array
-            if (!cvApplication.isEmpty()) {
-                try {
-                    placementStudent.setCvApplication(cvApplication.getBytes());
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
+            // Save the updated entity
+            placementStudentRepo.save(placementStudent);
 
-            // Set default values
-            placementStudent.setAbout("");  // Default empty about
-            placementStudent.setAcceptance(false);  // Default acceptance to false
-            placementStudent.setComments("");  // Default empty comments
-            placementStudent.setDate(new Date());  // Set today's date
+            return ResponseEntity.ok("CV application uploaded successfully.");
 
-            // Save the entity
-            PlacementStudent savedPlacementStudent = placementStudentRepo.save(placementStudent);
-
-            return ResponseEntity.status(HttpStatus.CREATED).body(savedPlacementStudent);
-
-        } catch (IllegalArgumentException ex) {
-            return ResponseEntity.badRequest().body(null);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error processing the file: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    @GetMapping("/{id}/download-cv")
+    public ResponseEntity<byte[]> downloadCvApplication(@PathVariable Long id) {
+
+        // Find the PlacementStudent entry by ID
+        PlacementStudent placementStudent = placementStudentRepo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("PlacementStudent with ID " + id + " not found."));
+
+        byte[] cvApplication = placementStudent.getCvApplication();
+
+        if (cvApplication == null || cvApplication.length == 0) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // Prepare HTTP response headers
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDisposition(ContentDisposition.attachment()
+                .filename("cv_application_" + id + ".pdf")
+                .build());
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(cvApplication);
     }
 
 }

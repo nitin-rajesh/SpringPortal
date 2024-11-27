@@ -2,59 +2,61 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-CREATE TABLE student_filter (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    student_id BIGINT NOT NULL,
-    specialisation_id BIGINT NOT NULL,
-    placement_id BIGINT NOT NULL,
-    domain_id BIGINT NOT NULL,
-    CONSTRAINT fk_student FOREIGN KEY (student_id) REFERENCES student(id) ON DELETE CASCADE,
-    CONSTRAINT fk_specialisation FOREIGN KEY (specialisation_id) REFERENCES specialisations(id) ON DELETE CASCADE,
-    CONSTRAINT fk_placement FOREIGN KEY (placement_id) REFERENCES placements(id) ON DELETE CASCADE,
-    CONSTRAINT fk_domain FOREIGN KEY (domain_id) REFERENCES domains(id) ON DELETE CASCADE
-);
+@RestController
+@RequestMapping("/api/placement-students")
+public class PlacementStudentController {
 
-CREATE TABLE student_filter (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    student_id BIGINT NOT NULL,
-    specialisation_id BIGINT NOT NULL,
-    placement_id BIGINT,
-    domain_id BIGINT NOT NULL,
-    CONSTRAINT fk_student FOREIGN KEY (student_id) REFERENCES student(id) ON DELETE CASCADE,
-    CONSTRAINT fk_specialisation FOREIGN KEY (specialisation_id) REFERENCES specialisations(id) ON DELETE CASCADE,
-    CONSTRAINT fk_placement FOREIGN KEY (placement_id) REFERENCES placements(id) ON DELETE CASCADE,
-    CONSTRAINT fk_domain FOREIGN KEY (domain_id) REFERENCES domains(id) ON DELETE CASCADE
-);
+    @Autowired
+    private PlacementStudentRepo placementStudentRepo;
 
-INSERT INTO placements (organisation_id, profile, description, intake, min_grade) 
-VALUES 
-(4, 'System Design Engineer', 'Responsible for developing and maintaining software systems.', 50, 7.5),
-(1, 'Big Data Researcher', 'Analyze data to provide business insights and reporting.', 30, 6.8);
+    @Autowired
+    private PlacementRepo placementRepo;
 
+    @Autowired
+    private StudentRepo studentRepo;
 
-CREATE TABLE student_courses (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    student_id BIGINT NOT NULL,
-    course_id BIGINT NOT NULL,
-    grade_id BIGINT,
-    comments TEXT,
-    FOREIGN KEY (student_id) REFERENCES student(id),
-    FOREIGN KEY (course_id) REFERENCES courses(id),
-    FOREIGN KEY (grade_id) REFERENCES grades(id)
-);
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<PlacementStudent> createPlacementStudent(
+            @RequestParam("placement_id") Long placementId,
+            @RequestParam("student_id") Long studentId,
+            @RequestParam("cv_application") MultipartFile cvApplication) {
 
-CREATE TABLE placement_student (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    placement_id BIGINT NOT NULL,
-    student_id BIGINT NOT NULL,
-    cv_application MEDIUMBLOB,
-    about TEXT,
-    acceptance BOOLEAN,
-    comments TEXT,
-    date TIMESTAMP,
-    FOREIGN KEY (placement_id) REFERENCES placements(id),
-    FOREIGN KEY (student_id) REFERENCES student(id)
-);
+        try {
+            // Fetch Placement and Student entities by their IDs
+            Placement placement = placementRepo.findById(placementId)
+                                               .orElseThrow(() -> new IllegalArgumentException("Placement not found"));
+            Student student = studentRepo.findById(studentId)
+                                         .orElseThrow(() -> new IllegalArgumentException("Student not found"));
+
+            // Create PlacementStudent entity
+            PlacementStudent placementStudent = new PlacementStudent();
+            placementStudent.setPlacement(placement);
+            placementStudent.setStudent(student);
+
+            // Set the CV application file as byte array
+            if (!cvApplication.isEmpty()) {
+                placementStudent.setCvApplication(cvApplication.getBytes());
+            }
+
+            // Set default values
+            placementStudent.setAbout("");  // Default empty about
+            placementStudent.setAcceptance(false);  // Default acceptance to false
+            placementStudent.setComments("");  // Default empty comments
+            placementStudent.setDate(new Date());  // Set today's date
+
+            // Save the entity
+            PlacementStudent savedPlacementStudent = placementStudentRepo.save(placementStudent);
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(savedPlacementStudent);
+
+        } catch (IOException ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+}
 
 
 

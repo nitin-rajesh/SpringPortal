@@ -42,12 +42,13 @@ const Login = () => {
 
   return (
     <div style={{ maxWidth: "400px", margin: "auto", textAlign: "center" }}>
-      <h2>Login</h2>
+      <h2>Student Placement ERP</h2>
+      <br></br>
       <form onSubmit={handleLogin}>
         <div style={{ marginBottom: "1rem" }}>
           <input
             type="text"
-            placeholder="Username"
+            placeholder="Username/Email"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
