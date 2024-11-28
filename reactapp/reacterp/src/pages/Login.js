@@ -35,9 +35,13 @@ const Login = () => {
       }
     } catch (error) {
       setMessage(
-        error.response?.data?.message || "An error occurred. Please try again."
+        error.response?.data?.message || "Cannot find account. Please check credentials."
       );
     }
+  };
+
+  const goToRegister = () => {
+    navigate("/register"); // Navigate to the register page
   };
 
   return (
@@ -69,6 +73,20 @@ const Login = () => {
           Login
         </button>
       </form>
+
+      <button
+        onClick={goToRegister}
+        style={{
+          padding: "0.5rem 2rem",
+          marginTop: "1rem",
+          backgroundColor: "#007BFF",
+          color: "#fff",
+          border: "none",
+          cursor: "pointer",
+        }}
+      >
+        Register
+      </button>
 
       {message && <p>{message}</p>}
       

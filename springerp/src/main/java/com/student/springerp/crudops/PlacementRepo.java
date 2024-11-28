@@ -12,7 +12,8 @@ public interface PlacementRepo extends JpaRepository<Placement, Long> {
 
     @Query("SELECT p FROM Placement p " +
             "JOIN PlacementFilter pf ON pf.placement = p " +
-            "JOIN StudentFilter sf on pf.specialisation = sf.specialisation " +
+            "JOIN StudentFilter sf ON pf.specialisation = sf.specialisation " +
+            "AND pf.domain = sf.domain " +
             "JOIN Student s ON sf.student = s " +
             "WHERE s.id = :id")
     List<Placement> findPlacementsForStudent(@Param("id") Long studentId);
